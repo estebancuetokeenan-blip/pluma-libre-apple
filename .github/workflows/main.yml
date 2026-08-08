@@ -20,23 +20,15 @@ jobs:
 
       - name: Install Capacitor
         run: npm install
-        working-directory: .
 
       - name: Add iOS platform
         run: npx cap add ios
-        working-directory: .
 
       - name: Import Apple certificate into keychain
-        env:
-          CERTIFICATE_B64: ${{ secrets.APPLE_CERTIFICATE }}
-          CERTIFICATE_PASS: ${{ secrets.APPLE_CERTIFICATE_PASS }}
-        run: |
-          echo "$CERTIFICATE_B64" | base64 --decode > certificate.p12
-          security create-keychain -p "build" build.keychain
-          security default-keychain -s build.keychain
-          security unlock-keychain -p "build" build.keychain
-          security import certificate.p12 -k build.keychain -P "$CERTIFICATE_PASS" -T /usr/bin/codesign
-          security set-key-partition-list -S apple-tool:,apple: -s -k "build" build.keychain
+        uses: apple-actions/import-codesign-certs@v3
+        with:
+          p12-file-base64: ${{ secrets.APPLE_CERTIFICATE }}
+          p12-password: ${{ secrets.APPLE_CERTIFICATE_PASS }}
 
       - name: Install provisioning profile
         env:
@@ -44,51 +36,4 @@ jobs:
         run: |
           echo "$PROFILE_B64" | base64 --decode > profile.mobileprovision
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          cp profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
-
-      - name: Build & archive
-        env:
-          TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-        run: |
-          cd ios/App
-          xcodebuild archive \
-            -scheme App \
-            -sdk iphoneos \
-            -archivePath ../../build/PlumaLibre.xcarchive \
-            DEVELOPMENT_TEAM="$TEAM_ID" \
-            CODE_SIGN_STYLE=Manual \
-            CODE_SIGN_IDENTITY="iPhone Distribution" \
-            -allowProvisioningUpdates \
-            -quiet
-
-      - name: Export IPA
-        run: |
-          cat > ExportOptions.plist << 'PLIST'
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-            <key>method</key>
-            <string>app-store</string>
-            <key>teamID</key>
-            <string>${{ secrets.APPLE_TEAM_ID }}</string>
-            <key>uploadSymbols</key>
-            <true/>
-            <key>compileBitcode</key>
-            <false/>
-          </dict>
-          </plist>
-          PLIST
-
-          xcodebuild -exportArchive \
-            -archivePath build/PlumaLibre.xcarchive \
-            -exportPath build/ipa \
-            -exportOptionsPlist ExportOptions.plist \
-            -quiet
-
-      - name: Upload IPA
-        uses: actions/upload-artifact@v4
-        with:
-          name: pluma-libre-ios
-          path: build/ipa/*.ipa
-          if-no-files-found: error
+          cp profile.mobileprovision ~/Library/MobileDevice/Provisioning\

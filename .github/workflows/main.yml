@@ -24,6 +24,9 @@ jobs:
       - name: Add iOS platform
         run: npx cap add ios
 
+      - name: Sync config files into iOS project
+        run: npx cap sync ios
+
       - name: Patch Podfile to disable Pod code signing
         run: |
           python3 -c "
@@ -88,7 +91,6 @@ jobs:
           TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
           CERT_NAME="Apple Distribution: Esteban Cueto ($TEAM_ID)"
-          echo "Using certificate: $CERT_NAME"
           cd ios/App
           xcodebuild archive \
             -workspace App.xcworkspace \

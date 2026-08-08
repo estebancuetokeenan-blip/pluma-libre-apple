@@ -100,7 +100,7 @@ jobs:
             CODE_SIGN_STYLE=Manual \
             CODE_SIGN_IDENTITY="$CERT_NAME" \
             PROVISIONING_PROFILE="$PROFILE_UUID" \
-            -allowProvisioningUpdates 2>&1 | tail -50
+            -allowProvisioningUpdates
 
       - name: Export IPA
         run: |

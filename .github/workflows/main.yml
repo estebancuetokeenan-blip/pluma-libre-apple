@@ -61,6 +61,17 @@ jobs:
           echo "PROFILE_UUID=$PROFILE_UUID" >> $GITHUB_ENV
           echo "Installed profile UUID: $PROFILE_UUID"
 
+      - name: Debug signing info
+        env:
+          TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          echo "=== Certificates in keychain ==="
+          security find-identity -v -p codesigning
+          echo "=== Team ID in provisioning profile ==="
+          /usr/libexec/PlistBuddy -c "Print :TeamIdentifier:0" /tmp/profile.plist
+          echo "=== Team ID from secret ==="
+          echo "$TEAM_ID"
+
       - name: Install CocoaPods dependencies
         run: |
           cd ios/App
@@ -81,8 +92,7 @@ jobs:
             CODE_SIGN_STYLE=Manual \
             CODE_SIGN_IDENTITY="Apple Distribution" \
             "PROVISIONING_PROFILE[com.edicionescueto.plumalibr]=$PROFILE_UUID" \
-            -allowProvisioningUpdates \
-            -quiet
+            -allowProvisioningUpdates
 
       - name: Export IPA
         run: |

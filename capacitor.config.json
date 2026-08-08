@@ -1,0 +1,14 @@
+{
+  "appId": "com.edicionescueto.plumalibr",
+  "appName": "Pluma Libre",
+  "webDir": "www",
+  "server": {
+    "url": "https://plumalibreapp.com",
+    "cleartext": false
+  },
+  "ios": {
+    "contentInset": "always",
+    "backgroundColor": "#fdfbf7",
+    "allowsLinkPreview": false
+  }
+}

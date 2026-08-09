@@ -134,20 +134,26 @@ jobs:
             -exportPath build/ipa \
             -exportOptionsPlist ExportOptions.plist
 
-      - name: Upload to TestFlight
+      - name: Upload to TestFlight via Fastlane
         env:
           ASC_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_API_ISSUER_ID }}
-          ASC_PRIVATE_KEY: ${{ secrets.ASC_API_PRIVATE_KEY }}
+          ASC_PRIVATE_KEY_B64: ${{ secrets.ASC_API_PRIVATE_KEY }}
         run: |
-          mkdir -p ~/.appstoreconnect/private_keys
-          echo "$ASC_PRIVATE_KEY" > ~/.appstoreconnect/private_keys/AuthKey_${ASC_KEY_ID}.p8
-          xcrun altool --upload-app \
-            --type ios \
-            --file "$(ls build/ipa/*.ipa)" \
-            --apiKey "$ASC_KEY_ID" \
-            --apiIssuer "$ASC_ISSUER_ID"
-          rm ~/.appstoreconnect/private_keys/AuthKey_${ASC_KEY_ID}.p8
+          cat > /tmp/asc_key.json << JSON
+          {
+            "key_id": "$ASC_KEY_ID",
+            "issuer_id": "$ASC_ISSUER_ID",
+            "key": "$ASC_PRIVATE_KEY_B64",
+            "in_house": false,
+            "is_key_content_base64": true
+          }
+          JSON
+          fastlane pilot upload \
+            --api_key_path /tmp/asc_key.json \
+            --ipa "$(ls build/ipa/*.ipa)" \
+            --skip_waiting_for_build_processing true
+          rm /tmp/asc_key.json
 
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4

@@ -140,14 +140,14 @@ jobs:
           ASC_ISSUER_ID: ${{ secrets.ASC_API_ISSUER_ID }}
           ASC_PRIVATE_KEY: ${{ secrets.ASC_API_PRIVATE_KEY }}
         run: |
-          echo "$ASC_PRIVATE_KEY" > /tmp/asc_key.p8
+          mkdir -p ~/.appstoreconnect/private_keys
+          echo "$ASC_PRIVATE_KEY" > ~/.appstoreconnect/private_keys/AuthKey_${ASC_KEY_ID}.p8
           xcrun altool --upload-app \
             --type ios \
             --file "$(ls build/ipa/*.ipa)" \
             --apiKey "$ASC_KEY_ID" \
-            --apiIssuer "$ASC_ISSUER_ID" \
-            --apiKey-path /tmp/asc_key.p8
-          rm /tmp/asc_key.p8
+            --apiIssuer "$ASC_ISSUER_ID"
+          rm ~/.appstoreconnect/private_keys/AuthKey_${ASC_KEY_ID}.p8
 
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4

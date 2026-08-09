@@ -134,6 +134,21 @@ jobs:
             -exportPath build/ipa \
             -exportOptionsPlist ExportOptions.plist
 
+      - name: Upload to TestFlight
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_API_ISSUER_ID }}
+          ASC_PRIVATE_KEY: ${{ secrets.ASC_API_PRIVATE_KEY }}
+        run: |
+          echo "$ASC_PRIVATE_KEY" > /tmp/asc_key.p8
+          xcrun altool --upload-app \
+            --type ios \
+            --file "$(ls build/ipa/*.ipa)" \
+            --apiKey "$ASC_KEY_ID" \
+            --apiIssuer "$ASC_ISSUER_ID" \
+            --apiKey-path /tmp/asc_key.p8
+          rm /tmp/asc_key.p8
+
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
         with:

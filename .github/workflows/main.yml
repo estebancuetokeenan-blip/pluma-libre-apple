@@ -27,6 +27,15 @@ jobs:
       - name: Sync config files into iOS project
         run: npx cap sync ios
 
+      - name: Set export compliance (no non-exempt encryption)
+        run: |
+          /usr/libexec/PlistBuddy \
+            -c "Add :ITSAppUsesNonExemptEncryption bool false" \
+            ios/App/App/Info.plist \
+          || /usr/libexec/PlistBuddy \
+            -c "Set :ITSAppUsesNonExemptEncryption false" \
+            ios/App/App/Info.plist
+
       - name: Patch Podfile to disable Pod code signing
         run: |
           python3 -c "

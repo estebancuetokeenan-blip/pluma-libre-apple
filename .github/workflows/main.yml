@@ -27,14 +27,13 @@ jobs:
       - name: Sync config files into iOS project
         run: npx cap sync ios
 
+      - name: Generate app icons from resources/icon.png
+        run: npx @capacitor/assets generate --ios
+
       - name: Patch Info.plist (build number + encryption compliance)
         run: |
           PLIST="ios/App/App/Info.plist"
-
-          # Bump build number to the GitHub run number (must increase on every upload)
           /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $GITHUB_RUN_NUMBER" "$PLIST"
-
-          # Declare no non-exempt encryption (avoids the export compliance dialog)
           /usr/libexec/PlistBuddy -c "Add :ITSAppUsesNonExemptEncryption bool false" "$PLIST" \
           || /usr/libexec/PlistBuddy -c "Set :ITSAppUsesNonExemptEncryption false" "$PLIST"
 
